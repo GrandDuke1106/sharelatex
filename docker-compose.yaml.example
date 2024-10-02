@@ -1,0 +1,159 @@
+version: '3'
+services:
+    sharelatex:
+        restart: always
+        # Server Pro users:
+        # image: quay.io/sharelatex/sharelatex-pro
+        image: grandduke1106/sharelatex:5.1.1-with-texlive-full-and-review
+        container_name: sharelatex
+        depends_on:
+            mongo:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        ports:
+            - 5015:80
+        stop_grace_period: 60s
+        volumes:
+            - ./data/sharelatex_data:/var/lib/overleaf
+            # - ./data/sharelatex_texlive:/texlive
+            ########################################################################
+            ####  Server Pro: Uncomment the following line to mount the docker  ####
+            ####             socket, required for Sibling Containers to work    ####
+            ########################################################################
+            # - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+
+            OVERLEAF_APP_NAME: Overleaf Community Edition
+            OVERLEAF_MONGO_URL: mongodb://mongo/overleaf
+
+            # Same property, unfortunately with different names in
+            # different locations
+            OVERLEAF_REDIS_HOST: redis
+            OVERLEAF_REDIS_PORT: 6379
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+
+            ENABLED_LINKED_FILE_TYPES: 'project_file,project_output_file'
+
+            # Disables email confirmation requirement
+            EMAIL_CONFIRMATION_DISABLED: 'false'
+
+            OVERLEAF_SITE_URL: https://overleaf.example.com
+            # OVERLEAF_NAV_TITLE: Our ShareLaTeX Instance
+            # OVERLEAF_HEADER_IMAGE_URL: http://somewhere.com/mylogo.png
+            # OVERLEAF_ADMIN_EMAIL: support@it.com
+
+            OVERLEAF_BEHIND_PROXY: true
+            OVERLEAF_SECURE_COOKIE: true
+
+            OVERLEAF_ALLOW_ANONYMOUS_READ_AND_WRITE_SHARING: false
+
+            ADDITIONAL_TEXT_EXTENSIONS: '["txt", "csv"]'
+            # OVERLEAF_LEFT_FOOTER: '[{"text": "Powered by <a href=\"https://www.sharelatex.com\">ShareLaTeX</a> 2016"},{"text": "Another page I want to link to can be found <a href=\"here\">here</a>"} ]'
+            # OVERLEAF_RIGHT_FOOTER: '[{"text": "Hello I am on the Right"} ]'
+
+            OVERLEAF_EMAIL_FROM_ADDRESS: "Overleaf<user@example.com>"
+
+            # OVERLEAF_EMAIL_AWS_SES_ACCESS_KEY_ID:
+            # OVERLEAF_EMAIL_AWS_SES_SECRET_KEY:
+
+            OVERLEAF_EMAIL_SMTP_HOST: smtp.example.com
+            OVERLEAF_EMAIL_SMTP_PORT: 465
+            OVERLEAF_EMAIL_SMTP_SECURE: true
+            OVERLEAF_EMAIL_SMTP_USER: "user@example.com"
+            OVERLEAF_EMAIL_SMTP_PASS: "password"
+            OVERLEAF_EMAIL_SMTP_TLS_REJECT_UNAUTH: true
+            # OVERLEAF_EMAIL_SMTP_IGNORE_TLS: false
+            # OVERLEAF_EMAIL_SMTP_NAME: '127.0.0.1'
+            # OVERLEAF_EMAIL_SMTP_LOGGER: true
+            # OVERLEAF_CUSTOM_EMAIL_FOOTER: "This system is run by department x"
+
+            ENABLE_CRON_RESOURCE_DELETION: true
+
+            ################
+            ## Server Pro ##
+            ################
+
+            # SANDBOXED_COMPILES: 'true'
+
+            # SANDBOXED_COMPILES_SIBLING_CONTAINERS: 'true'
+            # SANDBOXED_COMPILES_HOST_DIR: '/var/sharelatex_data/data/compiles'
+
+            # DOCKER_RUNNER: 'false'
+
+            ## Works with test LDAP server shown at bottom of docker compose
+            # OVERLEAF_LDAP_URL: 'ldap://ldap:389'
+            # OVERLEAF_LDAP_SEARCH_BASE: 'ou=people,dc=planetexpress,dc=com'
+            # OVERLEAF_LDAP_SEARCH_FILTER: '(uid={{username}})'
+            # OVERLEAF_LDAP_BIND_DN: 'cn=admin,dc=planetexpress,dc=com'
+            # OVERLEAF_LDAP_BIND_CREDENTIALS: 'GoodNewsEveryone'
+            # OVERLEAF_LDAP_EMAIL_ATT: 'mail'
+            # OVERLEAF_LDAP_NAME_ATT: 'cn'
+            # OVERLEAF_LDAP_LAST_NAME_ATT: 'sn'
+            # OVERLEAF_LDAP_UPDATE_USER_DETAILS_ON_LOGIN: 'true'
+            # OVERLEAF_TEMPLATES_USER_ID: "578773160210479700917ee5"
+            # OVERLEAF_NEW_PROJECT_TEMPLATE_LINKS: '[ {"name":"All Templates","url":"/templates/all"}]'
+            # OVERLEAF_PROXY_LEARN: "true"
+
+    mongo:
+        restart: always
+        image: mongo:6
+        container_name: mongo
+        command: "--replSet overleaf"
+        expose:
+            - 27017
+        volumes:
+            - ./data/mongo_data:/data/db
+        healthcheck:
+            test: echo 'db.stats().ok' | mongosh localhost:27017/test --quiet
+            start_period: 10s
+            interval: 10s
+            timeout: 10s
+            retries: 3
+
+    mongoinit:
+        restart: "no"
+        image: mongo:6
+        depends_on:
+          mongo:
+            condition: service_healthy
+        entrypoint:
+          [
+            "mongosh",
+            "--host",
+            "mongo:27017",
+            "--eval",
+            'rs.initiate({ _id: "overleaf", members: [ { _id: 0, host: "mongo:27017" } ] })',
+          ]
+
+    redis:
+        restart: always
+        image: redis:latest
+        container_name: redis
+        expose:
+            - 6379
+        volumes:
+            - ./data/redis_data:/data
+
+    # ldap:
+    #    restart: always
+    #    image: rroemhild/test-openldap
+    #    container_name: ldap
+    #    expose:
+    #        - 389
+
+    # See https://github.com/jwilder/nginx-proxy for documentation on how to configure the nginx-proxy container,
+    # and https://github.com/overleaf/overleaf/wiki/HTTPS-reverse-proxy-using-Nginx for an example of some recommended
+    # settings. We recommend using a properly managed nginx instance outside of the Overleaf Server Pro setup,
+    # but the example here can be used if you'd prefer to run everything with docker-compose
+
+    # nginx-proxy:
+    #     image: jwilder/nginx-proxy
+    #     container_name: nginx-proxy
+    #     ports:
+    #       #- "80:80"
+    #       - "443:443"
+    #     volumes:
+    #       - /var/run/docker.sock:/tmp/docker.sock:ro
+    #       - /home/sharelatex/tmp:/etc/nginx/certs
