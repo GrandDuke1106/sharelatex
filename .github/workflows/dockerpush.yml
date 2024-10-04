@@ -24,4 +24,4 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: user/app:latest
+          tags: grandduke1106/sharelatex:5.1.1-with-texlive-full-and-review
