@@ -4,7 +4,7 @@ services:
         restart: always
         # Server Pro users:
         # image: quay.io/sharelatex/sharelatex-pro
-        image: grandduke1106/sharelatex:5.2.1-with-texlive-full-and-review
+        image: grandduke1106/sharelatex:5.3.1-with-texlive-full-and-review
         container_name: sharelatex
         depends_on:
             mongo:
