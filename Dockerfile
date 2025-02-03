@@ -2,7 +2,7 @@ FROM sharelatex/sharelatex:5.3.1
 
 WORKDIR /overleaf
 
-RUN tlmgr option repository https://ctan.org/tex-archive/systems/texlive/tlnet && \
+RUN tlmgr option repository https://ctan.math.washington.edu/tex-archive/systems/texlive/tlnet && \
     tlmgr update --self --all && \
     tlmgr install scheme-full && \
     tlmgr path add
