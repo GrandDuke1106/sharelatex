@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: grandduke1106/sharelatex:5.3.1-with-texlive-full-and-review
+          tags: grandduke1106/sharelatex:5.4.1-with-texlive-full-and-review
 
   keepalive-workflow:
     name: Keepalive Workflow
@@ -36,6 +36,4 @@ jobs:
       actions: write
     steps:
       - uses: actions/checkout@v4
-      - uses: gautamkrishnar/keepalive-workflow@v1
-        with:
-          use_api: true
+      - uses: liskin/gh-workflow-keepalive@main
