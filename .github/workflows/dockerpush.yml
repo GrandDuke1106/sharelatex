@@ -3,7 +3,7 @@ name: push
 on:
   push:
   schedule:
-    - cron: '50 9 8-14,22-28 * 5'
+    - cron: '0 0 1 ? * L'
   workflow_dispatch:
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: grandduke1106/sharelatex:5.4.1-with-texlive-full-and-review
+          tags: grandduke1106/sharelatex:5.5.1-with-texlive-full-and-review
 
   keepalive-workflow:
     name: Keepalive Workflow
