@@ -1,4 +1,4 @@
-FROM sharelatex/sharelatex:5.5.1
+FROM sharelatex/sharelatex:5.5.3
 
 WORKDIR /overleaf
 
