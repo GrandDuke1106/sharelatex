@@ -5,5 +5,5 @@ sharelatex Dockerfile with full texlive and review patch
 
 ## build
 ```
-docker build . -t grandduke1106/sharelatex:5.5.3-with-texlive-full-and-review
+docker build . -t grandduke1106/sharelatex:5.5.4-with-texlive-full-and-review
 ```

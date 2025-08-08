@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: grandduke1106/sharelatex:5.5.3-with-texlive-full-and-review
+          tags: grandduke1106/sharelatex:5.5.4-with-texlive-full-and-review
 
   keepalive-workflow:
     name: Keepalive Workflow
